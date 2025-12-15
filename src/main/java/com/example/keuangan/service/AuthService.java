@@ -91,7 +91,7 @@ public class AuthService extends BaseService {
         return new RefreshTokenResponse(accessToken);
     }
 
-    
+    @Transactional
     public void logout(String refreshToken) {
 
         refreshTokenRepository.findByToken(refreshToken)

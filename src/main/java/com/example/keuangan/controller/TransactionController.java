@@ -25,24 +25,28 @@ import com.example.keuangan.service.TransactionService;
 @RequestMapping("/api/transactions")
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class TransactionController {
-    @Autowired
     private TransactionService transactionService;
     private TransactionRepository transactionRepository;
     
+    @Autowired
     public TransactionController(TransactionService transactionService, TransactionRepository transactionRepository) {
         this.transactionService = transactionService;
         this.transactionRepository = transactionRepository;
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TransactionResponse>> create(
-            @RequestBody TransactionRequest request
-    ) {
-        TransactionResponse result = transactionService.createTransaction(request);
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Transaction created", result)
-        );
+    public ResponseEntity<ApiResponse<TransactionResponse>> create(@RequestBody TransactionRequest request) {
+        try {
+            TransactionResponse result = transactionService.createTransaction(request);
+            
+            return ResponseEntity.ok(
+                    ApiResponse.success("Transaction created", result)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.error(e.getMessage())
+            );
+        }
     }
 
     @GetMapping
@@ -52,8 +56,14 @@ public class TransactionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        transactionRepository.deleteById(id);
-        return ResponseEntity.ok(Map.of("success", true));
+        try {
+            transactionRepository.deleteById(id);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.error(e.getMessage())
+            );
+        }
     }
 
 }

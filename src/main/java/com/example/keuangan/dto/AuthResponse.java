@@ -8,5 +8,10 @@ import lombok.Getter;
 public class AuthResponse {
     private String token;
     private String refreshToken;
+    
+    public AuthResponse(String token) {
+        this.token = token;
+        this.refreshToken = null;
+    }
 }
 
