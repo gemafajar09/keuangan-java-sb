@@ -9,6 +9,8 @@ import com.example.keuangan.entity.Role;
 import com.example.keuangan.entity.User;
 import com.example.keuangan.repository.RefreshTokenRepository;
 import com.example.keuangan.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +50,7 @@ public class AuthService {
         return new AuthResponse(token, null);
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
@@ -68,6 +71,7 @@ public class AuthService {
         return new AuthResponse(token, refreshToken.getToken());
     }
 
+    @Transactional
     public RefreshTokenResponse refresh(String refreshToken) {
 
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
@@ -84,6 +88,7 @@ public class AuthService {
         return new RefreshTokenResponse(accessToken);
     }
 
+    
     public void logout(String refreshToken) {
 
         refreshTokenRepository.findByToken(refreshToken)
@@ -92,6 +97,7 @@ public class AuthService {
         refreshTokenService.revokeByToken(refreshToken);
     }
 
+    @Transactional
     public void logoutAllDevices(String email) {
 
         User user = userRepository.findByEmail(email)

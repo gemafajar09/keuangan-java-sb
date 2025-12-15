@@ -23,7 +23,6 @@ public class AuthController {
 
     @PostMapping("/register")
     public AuthResponse register(@RequestBody @Valid RegisterRequest request) {
-        System.out.println("REGISTER HIT");
         return authService.register(request);
     }
 
