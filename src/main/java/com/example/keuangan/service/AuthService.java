@@ -9,6 +9,7 @@ import com.example.keuangan.entity.Role;
 import com.example.keuangan.entity.User;
 import com.example.keuangan.repository.RefreshTokenRepository;
 import com.example.keuangan.repository.UserRepository;
+import com.example.keuangan.util.BaseService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService extends BaseService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -67,6 +68,8 @@ public class AuthService {
 
         RefreshToken refreshToken =
                 refreshTokenService.createRefreshToken(user, refreshExpiration);
+
+        info("User {} logged in", user.getEmail());
 
         return new AuthResponse(token, refreshToken.getToken());
     }

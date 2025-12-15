@@ -4,9 +4,7 @@ import org.slf4j.Logger;
 
 public class LogUtil {
 
-    private LogUtil() {
-        // prevent instantiation
-    }
+    private LogUtil() {}
 
     public static void info(Logger log, String message, Object... args) {
         log.info(format(message), args);

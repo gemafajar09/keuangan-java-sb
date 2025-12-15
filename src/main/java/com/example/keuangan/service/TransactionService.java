@@ -6,9 +6,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.example.keuangan.dto.TransactionDetailRequest;
 import com.example.keuangan.dto.TransactionRequest;
 import com.example.keuangan.dto.TransactionResponse;
@@ -18,12 +15,10 @@ import com.example.keuangan.entity.TransactionDetail;
 import com.example.keuangan.mapper.TransactionMapper;
 import com.example.keuangan.repository.AccountRepository;
 import com.example.keuangan.repository.TransactionRepository;
+import com.example.keuangan.util.BaseService;
 
 @Service
-public class TransactionService {
-
-    private static final Logger log =
-            LoggerFactory.getLogger(TransactionService.class);
+public class TransactionService extends BaseService {
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -84,24 +79,5 @@ public class TransactionService {
         if (totalDebit.compareTo(totalCredit) != 0) {
             throw new RuntimeException("Total debit dan credit harus sama");
         }
-    }
-
-    // function lama 
-    public FinancialTransaction save(FinancialTransaction transaction) {
-
-        BigDecimal totalDebit = transaction.getDetails().stream()
-                                .map(d -> d.getDebit() == null ? BigDecimal.ZERO : d.getDebit())
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalCredit = transaction.getDetails().stream()
-                                .map(d -> d.getCredit() == null ? BigDecimal.ZERO : d.getCredit())
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        if(totalDebit.compareTo(totalCredit) != 0) {
-            throw new IllegalArgumentException("Total debit dan credit harus sama");
-        }
-        
-        transaction.getDetails().forEach(d -> d.setTransaction(transaction));
-        return transactionRepository.save(transaction);
     }
 }
