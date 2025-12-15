@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/keuangan
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: mysecretkeyjwt123456789
+  access-expiration: 900000      
+  refresh-expiration: 604800000  
+  expiration: 900000
+
+port: 9090
+
+app:
+  cookie:
+    secure: false
