@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.example.keuangan.dto.AccountResponse;
 import com.example.keuangan.dto.TransactionDetailResponse;
 import com.example.keuangan.dto.TransactionResponse;
 import com.example.keuangan.entity.FinancialTransaction;
@@ -42,14 +41,10 @@ public class TransactionMapper {
     private TransactionDetailResponse mapDetail(TransactionDetail detail) {
         return new TransactionDetailResponse(
                 detail.getId(),
-                new AccountResponse(
-                        detail.getAccount().getId(),
-                        detail.getAccount().getCode(),
-                        detail.getAccount().getName(),
-                        detail.getAccount().getType()
-                ),
+                detail.getAccount().getId(),
                 detail.getDebit(),
-                detail.getCredit()
+                detail.getCredit(),
+                null
         );
     }
 }

@@ -1,6 +1,7 @@
 package com.example.keuangan.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TransactionDetailResponse {
     private Long id;
-    private AccountResponse account;
+    private Long accountId;
     private BigDecimal debit;
     private BigDecimal credit;
+    private List<AccountResponse> accounts;
 }
