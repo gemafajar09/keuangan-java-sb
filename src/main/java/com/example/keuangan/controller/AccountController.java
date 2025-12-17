@@ -28,7 +28,7 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<?> getAllAccounts() {
         try {
-            var accounts = accountService.findAll();
+            var accounts = accountService.cariSemua();
             return ResponseEntity.ok(accounts);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
@@ -40,7 +40,7 @@ public class AccountController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getAccountById(Long id) {
         try {
-            var account = accountService.findById(id);
+            var account = accountService.cariById(id);
             if (account.isPresent()) {
                 return ResponseEntity.ok(account.get());
             } else {
@@ -56,7 +56,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<?> createAccount(@RequestBody AccountRequest request) {
         try {
-            var savedAccount = accountService.createAccount(request);
+            var savedAccount = accountService.buatAccount(request);
             return ResponseEntity.ok(
                 ApiResponse.success("Account created", savedAccount)
             );
@@ -68,7 +68,7 @@ public class AccountController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAccount(Long id) {
         try {
-            accountService.deleteAccount(id);
+            accountService.hapusAccount(id);
             return ResponseEntity.ok("Account deleted successfully.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body("Account not found.");

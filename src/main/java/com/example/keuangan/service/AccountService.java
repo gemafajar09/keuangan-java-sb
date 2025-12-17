@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.example.keuangan.dto.AccountRequest;
 import com.example.keuangan.dto.AccountResponse;
@@ -11,6 +12,11 @@ import com.example.keuangan.entity.Account;
 import com.example.keuangan.repository.AccountRepository;
 import com.example.keuangan.util.BaseService;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class AccountService extends BaseService {
     
     private AccountRepository accountRepository;
@@ -20,15 +26,15 @@ public class AccountService extends BaseService {
         this.accountRepository = accountRepository;
     }
 
-    public List<Account> findAll() {
+    public List<Account> cariSemua() {
         return accountRepository.findAll();
     }
 
-    public Optional<Account> findById(Long id) {
+    public Optional<Account> cariById(Long id) {
         return accountRepository.findById(id);
     }
 
-    public AccountResponse createAccount(AccountRequest request) {
+    public AccountResponse buatAccount(AccountRequest request) {
         Account account = new Account();
         account.setCode(request.getCode());
         account.setName(request.getName());
@@ -42,7 +48,8 @@ public class AccountService extends BaseService {
         );
     }
 
-    public void deleteAccount(Long id) {
+    @Transactional
+    public void hapusAccount(Long id) {
         try {
             accountRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));

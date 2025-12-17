@@ -25,7 +25,7 @@ public class FinancialTransaction {
     private String reference;
     private String description;
 
-     @OneToMany(
+    @OneToMany(
         mappedBy = "transaction",
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,

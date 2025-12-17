@@ -20,11 +20,11 @@ import com.example.keuangan.util.BaseService;
 @Service
 public class TransactionService extends BaseService {
 
-    @Autowired
     private TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final TransactionMapper transactionMapper;
-
+    
+    @Autowired
     public TransactionService(
             TransactionRepository transactionRepository,
             AccountRepository accountRepository,

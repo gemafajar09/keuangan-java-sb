@@ -1,5 +1,6 @@
 package com.example.keuangan.controller;
 
+import com.example.keuangan.dto.ApiResponse;
 import com.example.keuangan.dto.AuthResponse;
 import com.example.keuangan.dto.LoginRequest;
 import com.example.keuangan.dto.LogoutRequest;
@@ -23,28 +24,38 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody @Valid RegisterRequest request) {
         try {
             AuthResponse response = authService.register(request);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                ApiResponse.success("Registration successful", response)
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse("Registration failed"));
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Registration failed")
+            );
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         try {
             AuthResponse response = authService.login(request);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                ApiResponse.success("Login successful", response)
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Login failed"));
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Login failed: " + e.getMessage())
+            );
         }
     }
 
     @PostMapping("/refresh")
     public RefreshTokenResponse refresh(@RequestBody RefreshTokenRequest request) {
+
         return authService.refresh(request.getRefreshToken());
+
     }
 
     @PostMapping("/logout")
