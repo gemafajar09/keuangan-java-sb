@@ -24,4 +24,8 @@ public class RefreshToken {
     @JoinColumn(name = "user_id")
     
     private User user;
+
+    public long getRefreshTokenExpiry() {
+        throw new UnsupportedOperationException("Unimplemented method 'getRefreshTokenExpiry'");
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.keuangan.service;
 
+import com.example.keuangan.config.CookieUtil;
 import com.example.keuangan.dto.AuthResponse;
 import com.example.keuangan.dto.LoginRequest;
 import com.example.keuangan.dto.RefreshTokenResponse;
@@ -11,6 +12,7 @@ import com.example.keuangan.repository.RefreshTokenRepository;
 import com.example.keuangan.repository.UserRepository;
 import com.example.keuangan.util.BaseService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -33,9 +35,6 @@ public class AuthService extends BaseService {
 
     public AuthResponse register(RegisterRequest request) {
 
-        System.out.println("EMAIL: " + request.getEmail());
-        System.out.println("PASSWORD: " + request.getPassword());
-
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -52,7 +51,7 @@ public class AuthService extends BaseService {
     }
 
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, HttpServletResponse response) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
@@ -69,13 +68,23 @@ public class AuthService extends BaseService {
         RefreshToken refreshToken =
                 refreshTokenService.createRefreshToken(user, refreshExpiration);
 
+        CookieUtil.addRefreshTokenCookie(
+            response,
+            refreshToken.getToken(),
+            refreshToken.getExpiryDate().toEpochMilli(),
+            false
+        );
+
         info("User {} logged in", user.getEmail());
 
         return new AuthResponse(token, refreshToken.getToken());
     }
 
     @Transactional
-    public RefreshTokenResponse refresh(String refreshToken) {
+    public RefreshTokenResponse refresh(
+        String refreshToken,
+        HttpServletResponse response
+    ) {
 
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
                 .map(refreshTokenService::verifyExpiration)
@@ -88,16 +97,21 @@ public class AuthService extends BaseService {
                 user.getRole().name()
         );
 
+        RefreshToken result = refreshTokenService.verifyAndRotate(refreshToken);
+
+        CookieUtil.addRefreshTokenCookie(
+            response,
+            result.getToken(),
+            result.getRefreshTokenExpiry(),
+            false
+        );
+
         return new RefreshTokenResponse(accessToken);
     }
 
     @Transactional
     public void logout(String refreshToken) {
-
-        refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-
-        refreshTokenService.revokeByToken(refreshToken);
+        refreshTokenRepository.deleteByToken(refreshToken);
     }
 
     @Transactional

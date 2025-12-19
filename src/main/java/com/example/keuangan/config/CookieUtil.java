@@ -1,4 +1,4 @@
-package com.example.keuangan.security;
+package com.example.keuangan.config;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
