@@ -39,8 +39,9 @@ public class AuthService extends BaseServiceUtil {
 
                 User user = new User();
                 user.setEmail(request.getEmail());
+                user.setName(request.getName());
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
-                user.setIsOnline(false); // New users start offline
+                user.setIsOnline(false);
 
                 Role role;
                 if (request.getRoleId() != null) {
@@ -72,11 +73,8 @@ public class AuthService extends BaseServiceUtil {
                         throw new BadCredentialsException("Invalid credentials");
                 }
 
-                // Check if user is already logged in from another device
-                // Handle null case: if isOnline is null, treat as false (offline)
                 Boolean isOnline = user.getIsOnline();
                 if (isOnline == null) {
-                        // Fix null value by setting to false
                         user.setIsOnline(false);
                         isOnline = false;
                 }
@@ -85,13 +83,11 @@ public class AuthService extends BaseServiceUtil {
                         throw new com.example.keuangan.exception.UserAlreadyActiveException();
                 }
 
-                // Enforce single session: revoke all existing refresh tokens (logout other
-                // devices)
                 refreshTokenService.revokeAllByUser(user.getId());
 
-                // Set user online status
                 user.setIsOnline(true);
                 user.setLastLoginAt(java.time.Instant.now());
+                user.setLastActivityAt(java.time.Instant.now());
                 userRepository.save(user);
 
                 String token = jwtService.generateToken(
@@ -127,7 +123,6 @@ public class AuthService extends BaseServiceUtil {
 
         @Transactional
         public void logout(@NonNull String refreshToken) {
-                // Find user by refresh token and set offline
                 refreshTokenRepository.findByToken(refreshToken).ifPresent(token -> {
                         User user = token.getUser();
                         user.setIsOnline(false);
@@ -153,6 +148,7 @@ public class AuthService extends BaseServiceUtil {
                 return new com.example.keuangan.dto.user.UserResponseDto(
                                 user.getId(),
                                 user.getEmail(),
+                                user.getName(),
                                 user.getRole().getName(),
                                 user.getFamily() != null ? new com.example.keuangan.dto.family.FamilyDto() {
                                         {

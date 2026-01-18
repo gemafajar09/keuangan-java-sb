@@ -18,6 +18,9 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
     private String password;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -33,4 +36,7 @@ public class User {
 
     @Column(name = "last_login_at")
     private java.time.Instant lastLoginAt;
+
+    @Column(name = "last_activity_at")
+    private java.time.Instant lastActivityAt;
 }

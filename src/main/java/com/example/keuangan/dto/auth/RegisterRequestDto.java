@@ -12,7 +12,12 @@ public class RegisterRequestDto {
     @Email
     @NotBlank
     private String email;
+
+    @NotBlank
+    private String name;
+
     @NotBlank
     private String password;
+
     private Long roleId;
 }

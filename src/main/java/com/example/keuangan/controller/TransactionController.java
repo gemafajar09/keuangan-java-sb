@@ -3,7 +3,6 @@ package com.example.keuangan.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +33,6 @@ public class TransactionController {
     private TransactionService transactionService;
     private TransactionRepository transactionRepository;
 
-    @Autowired
     public TransactionController(TransactionService transactionService, TransactionRepository transactionRepository) {
         this.transactionService = transactionService;
         this.transactionRepository = transactionRepository;

@@ -1,6 +1,5 @@
 package com.example.keuangan.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,6 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @Autowired
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
     }

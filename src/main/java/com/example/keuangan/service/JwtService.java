@@ -68,5 +68,12 @@ public class JwtService {
         return UUID.randomUUID().toString();
     }
 
-    
+    public long getTokenRemainingTime(String token) {
+        try {
+            Date expiration = extractClaims(token).getExpiration();
+            return expiration.getTime() - System.currentTimeMillis();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }

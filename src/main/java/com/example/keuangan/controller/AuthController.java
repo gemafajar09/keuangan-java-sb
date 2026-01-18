@@ -57,12 +57,10 @@ public class AuthController {
             refreshToken = "";
         }
 
-        // Create access token cookie
         ResponseCookie accessCookie = CookieUtil.createAccessTokenCookie(
                 accessToken,
-                900000L); // 15 minutes
+                900000L); 
 
-        // Create refresh token cookie
         ResponseCookie refreshCookie = CookieUtil.createRefreshTokenCookie(
                 refreshToken,
                 REFRESH_TOKEN_VALIDITY_MS);
@@ -105,7 +103,6 @@ public class AuthController {
             authService.logout(java.util.Objects.requireNonNull(refreshToken));
         }
 
-        // Clear both access and refresh token cookies
         ResponseCookie accessCookie = CookieUtil.deleteAccessTokenCookie();
         ResponseCookie refreshCookie = CookieUtil.deleteRefreshTokenCookie();
 
