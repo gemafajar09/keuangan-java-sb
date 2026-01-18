@@ -20,6 +20,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private Role role = Role.USER;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 }

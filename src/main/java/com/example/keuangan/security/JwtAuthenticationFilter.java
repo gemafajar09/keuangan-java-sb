@@ -1,4 +1,4 @@
-package com.example.keuangan.config;
+package com.example.keuangan.security;
 
 import com.example.keuangan.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,16 +26,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         return request.getServletPath().startsWith("/api/auth")
                 && request.getMethod().equals("POST");
     }
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
@@ -58,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email);
+                    userDetailsService.loadUserByUsername(java.util.Objects.requireNonNull(email));
 
             if (jwtService.isTokenValid(jwt)) {
 

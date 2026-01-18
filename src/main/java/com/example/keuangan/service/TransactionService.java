@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.keuangan.dto.TransactionDetailRequest;
-import com.example.keuangan.dto.TransactionRequest;
-import com.example.keuangan.dto.TransactionResponse;
+import com.example.keuangan.dto.TransactionDetailRequestDto;
+import com.example.keuangan.dto.TransactionRequestDto;
+import com.example.keuangan.dto.TransactionResponseDto;
 import com.example.keuangan.entity.Account;
 import com.example.keuangan.entity.FinancialTransaction;
 import com.example.keuangan.entity.TransactionDetail;
@@ -35,7 +35,7 @@ public class TransactionService extends BaseService {
         this.transactionMapper = transactionMapper;
     }
 
-    public TransactionResponse createTransaction(TransactionRequest request) {
+    public TransactionResponseDto createTransaction(TransactionRequestDto request) {
 
         FinancialTransaction transaction = new FinancialTransaction();
         transaction.setTransactionDate(request.getTransactionDate());
@@ -56,7 +56,8 @@ public class TransactionService extends BaseService {
         return transactionMapper.toResponse(saved);
     }
 
-    private TransactionDetail mapDetail(TransactionDetailRequest dto) {
+    @SuppressWarnings("null")
+	private TransactionDetail mapDetail(TransactionDetailRequestDto dto) {
         Account account = accountRepository.findById(dto.getAccountId())
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 

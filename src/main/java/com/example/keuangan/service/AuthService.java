@@ -1,21 +1,21 @@
 package com.example.keuangan.service;
 
-import com.example.keuangan.config.CookieUtil;
-import com.example.keuangan.dto.AuthResponse;
-import com.example.keuangan.dto.LoginRequest;
-import com.example.keuangan.dto.RefreshTokenResponse;
-import com.example.keuangan.dto.RegisterRequest;
-import com.example.keuangan.entity.RefreshToken;
+import com.example.keuangan.dto.AuthResponseDto;
+import com.example.keuangan.dto.LoginRequestDto;
+import com.example.keuangan.dto.RefreshTokenResponseDto;
+import com.example.keuangan.dto.RegisterRequestDto;
 import com.example.keuangan.entity.Role;
+import com.example.keuangan.entity.RefreshToken;
 import com.example.keuangan.entity.User;
 import com.example.keuangan.repository.RefreshTokenRepository;
+import com.example.keuangan.repository.RoleRepository;
 import com.example.keuangan.repository.UserRepository;
 import com.example.keuangan.util.BaseService;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.lang.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class AuthService extends BaseService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
@@ -33,25 +34,29 @@ public class AuthService extends BaseService {
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponseDto register(RegisterRequestDto request) {
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.USER);
+
+        // Default role is USER (ID 1) if not specified or found
+        Long roleId = request.getRoleId() != null ? request.getRoleId() : 1L;
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        user.setRole(role);
 
         userRepository.save(user);
 
         String token = jwtService.generateToken(
-            user.getEmail(),
-            user.getRole().name()
-        );
+                user.getEmail(),
+                user.getRole().getName());
 
-        return new AuthResponse(token, null);
+        return new AuthResponseDto(token, null);
     }
 
     @Transactional
-    public AuthResponse login(LoginRequest request, HttpServletResponse response) {
+    public AuthResponseDto login(LoginRequestDto request) { // Removed HttpServletResponse
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
@@ -61,30 +66,21 @@ public class AuthService extends BaseService {
         }
 
         String token = jwtService.generateToken(
-            user.getEmail(),
-            user.getRole().name()
-        );
+                user.getEmail(),
+                user.getRole().getName());
 
-        RefreshToken refreshToken =
-                refreshTokenService.createRefreshToken(user, refreshExpiration);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user, refreshExpiration);
 
-        CookieUtil.addRefreshTokenCookie(
-            response,
-            refreshToken.getToken(),
-            refreshToken.getExpiryDate().toEpochMilli(),
-            false
-        );
+        // We return the refresh token string in the response object as well (optional,
+        // but requested by some clients)
+        // ideally it's only in the cookie.
 
-        info("User {} logged in", user.getEmail());
-
-        return new AuthResponse(token, refreshToken.getToken());
+        return new AuthResponseDto(token, refreshToken.getToken());
     }
 
     @Transactional
-    public RefreshTokenResponse refresh(
-        String refreshToken,
-        HttpServletResponse response
-    ) {
+    public RefreshTokenResponseDto refresh(@NonNull String refreshToken) {
+        // Removed HttpServletResponse arg
 
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
                 .map(refreshTokenService::verifyExpiration)
@@ -94,28 +90,25 @@ public class AuthService extends BaseService {
 
         String accessToken = jwtService.generateAccessToken(
                 user.getEmail(),
-                user.getRole().name()
-        );
+                user.getRole().getName());
 
         RefreshToken result = refreshTokenService.verifyAndRotate(refreshToken);
 
-        CookieUtil.addRefreshTokenCookie(
-            response,
-            result.getToken(),
-            result.getRefreshTokenExpiry(),
-            false
-        );
+        // Return new access token and the result for cookie creation in Controller
+        RefreshTokenResponseDto response = new RefreshTokenResponseDto(accessToken);
+        response.setNewRefreshToken(result.getToken()); // Need to ensure DTO has this or handle in Controller
+        response.setRefreshTokenExpiry(result.getExpiryDate().toEpochMilli());
 
-        return new RefreshTokenResponse(accessToken);
+        return response;
     }
 
     @Transactional
-    public void logout(String refreshToken) {
+    public void logout(@NonNull String refreshToken) {
         refreshTokenRepository.deleteByToken(refreshToken);
     }
 
     @Transactional
-    public void logoutAllDevices(String email) {
+    public void logoutAllDevices(@NonNull String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

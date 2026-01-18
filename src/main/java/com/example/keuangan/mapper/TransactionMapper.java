@@ -5,29 +5,29 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.example.keuangan.dto.TransactionDetailResponse;
-import com.example.keuangan.dto.TransactionResponse;
+import com.example.keuangan.dto.TransactionDetailResponseDto;
+import com.example.keuangan.dto.TransactionResponseDto;
 import com.example.keuangan.entity.FinancialTransaction;
 import com.example.keuangan.entity.TransactionDetail;
 
 @Component
 public class TransactionMapper {
-    public TransactionResponse toResponse(FinancialTransaction trx) {
+    public TransactionResponseDto toResponse(FinancialTransaction trx) {
 
-        List<TransactionDetailResponse> detailResponses =
+        List<TransactionDetailResponseDto> detailResponses =
                 trx.getDetails().stream()
                         .map(this::mapDetail)
                         .toList();
 
         BigDecimal totalDebit = detailResponses.stream()
-                .map(TransactionDetailResponse::getDebit)
+                .map(TransactionDetailResponseDto::getDebit)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalCredit = detailResponses.stream()
-                .map(TransactionDetailResponse::getCredit)
+                .map(TransactionDetailResponseDto::getCredit)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return new TransactionResponse(
+        return new TransactionResponseDto(
                 trx.getId(),
                 trx.getTransactionDate(),
                 trx.getReference(),
@@ -38,13 +38,13 @@ public class TransactionMapper {
         );
     }
 
-    private TransactionDetailResponse mapDetail(TransactionDetail detail) {
-        return new TransactionDetailResponse(
+    private TransactionDetailResponseDto mapDetail(TransactionDetail detail) {
+        return new TransactionDetailResponseDto(
                 detail.getId(),
                 detail.getAccount().getId(),
                 detail.getDebit(),
                 detail.getCredit(),
-                null
+                null // Description is null in previous code
         );
     }
 }

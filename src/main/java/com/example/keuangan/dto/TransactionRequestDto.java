@@ -6,10 +6,9 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class FinancialTransactionResponse {
-    private Long id;
+public class TransactionRequestDto {
     private LocalDate transactionDate;
     private String reference;
     private String description;
-    private List<TransactionDetailResponse> details;
+    private List<TransactionDetailRequestDto> details;
 }

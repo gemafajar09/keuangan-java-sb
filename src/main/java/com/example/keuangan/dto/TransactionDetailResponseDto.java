@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransactionDetailResponse {
+public class TransactionDetailResponseDto {
     private Long id;
     private Long accountId;
     private BigDecimal debit;
     private BigDecimal credit;
-    private List<AccountResponse> accounts;
+    private List<AccountResponseDto> accounts;
 }

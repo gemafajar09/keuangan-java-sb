@@ -11,12 +11,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransactionResponse {
+public class TransactionResponseDto {
     private Long id;
     private LocalDate transactionDate;
     private String reference;
     private String description;
     private BigDecimal totalDebit;
     private BigDecimal totalCredit;
-    private List<TransactionDetailResponse> details;
+    private List<TransactionDetailResponseDto> details;
 }

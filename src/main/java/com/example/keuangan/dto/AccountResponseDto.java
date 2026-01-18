@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountResponse {
+public class AccountResponseDto {
 
     private Long id;
     private String code;
     private String name;
     private String type;
+    private java.math.BigDecimal balance;
 }

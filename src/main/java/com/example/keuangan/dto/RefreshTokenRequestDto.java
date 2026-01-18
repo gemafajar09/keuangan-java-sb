@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LogoutRequest {
+public class RefreshTokenRequestDto {
     private String refreshToken;
 }

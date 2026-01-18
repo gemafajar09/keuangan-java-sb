@@ -1,4 +1,4 @@
-package com.example.keuangan.dto;
+package com.example.keuangan.payload;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,5 +19,9 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(String message) {
         return new ApiResponse<>(false, message, null);
+    }
+
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return new ApiResponse<>(false, message, data);
     }
 }

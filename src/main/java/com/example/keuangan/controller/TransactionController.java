@@ -14,22 +14,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.keuangan.dto.AccountResponse;
-import com.example.keuangan.dto.ApiResponse;
-import com.example.keuangan.dto.FinancialTransactionResponse;
-import com.example.keuangan.dto.TransactionDetailResponse;
-import com.example.keuangan.dto.TransactionRequest;
-import com.example.keuangan.dto.TransactionResponse;
+import com.example.keuangan.dto.AccountResponseDto;
+import com.example.keuangan.payload.ApiResponse;
+import com.example.keuangan.dto.FinancialTransactionResponseDto;
+import com.example.keuangan.dto.TransactionDetailResponseDto;
+import com.example.keuangan.dto.TransactionRequestDto;
+import com.example.keuangan.dto.TransactionResponseDto;
 import com.example.keuangan.repository.TransactionRepository;
 import com.example.keuangan.service.TransactionService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/transactions")
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+@Tag(name = "Transaction Controller", description = "Manage financial transactions")
 public class TransactionController {
     private TransactionService transactionService;
     private TransactionRepository transactionRepository;
-    
+
     @Autowired
     public TransactionController(TransactionService transactionService, TransactionRepository transactionRepository) {
         this.transactionService = transactionService;
@@ -37,28 +41,27 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TransactionResponse>> create(@RequestBody TransactionRequest request) {
+    @Operation(summary = "Create transaction", description = "Record a new financial transaction with details")
+    public ResponseEntity<ApiResponse<TransactionResponseDto>> create(@RequestBody TransactionRequestDto request) {
         try {
-            TransactionResponse result = transactionService.createTransaction(request);
-            
+            TransactionResponseDto result = transactionService.createTransaction(request);
+
             return ResponseEntity.ok(
-                    ApiResponse.success("Transaction created", result)
-            );
+                    ApiResponse.success("Transaction created", result));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
-                    ApiResponse.error(e.getMessage())
-            );
+                    ApiResponse.error(e.getMessage()));
         }
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<FinancialTransactionResponse>>> getAll() {
+    @Operation(summary = "Get all transactions", description = "Retrieve list of all transactions with details")
+    public ResponseEntity<ApiResponse<List<FinancialTransactionResponseDto>>> getAll() {
 
-        List<FinancialTransactionResponse> response =
-            transactionRepository.findAllWithDetails()
+        List<FinancialTransactionResponseDto> response = transactionRepository.findAllWithDetails()
                 .stream()
                 .map(t -> {
-                    FinancialTransactionResponse dto = new FinancialTransactionResponse();
+                    FinancialTransactionResponseDto dto = new FinancialTransactionResponseDto();
                     dto.setId(t.getId());
                     dto.setTransactionDate(t.getTransactionDate());
                     dto.setReference(t.getReference());
@@ -66,44 +69,42 @@ public class TransactionController {
 
                     if (t.getDetails() != null) {
                         dto.setDetails(
-                            t.getDetails().stream()
-                                .map(d -> {
-                                    TransactionDetailResponse dr =
-                                            new TransactionDetailResponse();
-                                    dr.setId(d.getId());
-                                    dr.setDebit(d.getDebit());
-                                    dr.setCredit(d.getCredit());
-                                    dr.setAccountId(d.getAccount().getId());
-                                    dr.setAccounts(List.of(
-                                        new AccountResponse(
-                                            d.getAccount().getId(),
-                                            d.getAccount().getName(),
-                                            d.getAccount().getType(), null
-                                        )
-                                    ));
-                                    return dr;
-                                })
-                                .toList()
-                        );
+                                t.getDetails().stream()
+                                        .map(d -> {
+                                            TransactionDetailResponseDto dr = new TransactionDetailResponseDto();
+                                            dr.setId(d.getId());
+                                            dr.setDebit(d.getDebit());
+                                            dr.setCredit(d.getCredit());
+                                            dr.setAccountId(d.getAccount().getId());
+                                            dr.setAccounts(List.of(
+                                                    new AccountResponseDto(
+                                                            d.getAccount().getId(),
+                                                            d.getAccount().getCode(),
+                                                            d.getAccount().getName(),
+                                                            d.getAccount().getType(),
+                                                            d.getAccount().getBalance())));
+                                            return dr;
+                                        })
+                                        .toList());
                     }
                     return dto;
                 })
                 .toList();
 
         return ResponseEntity.ok(
-            ApiResponse.success("Transactions retrieved", response)
-        );
+                ApiResponse.success("Transactions retrieved", response));
     }
 
-    @DeleteMapping("/{id}")
+    @SuppressWarnings("null")
+	@DeleteMapping("/{id}")
+    @Operation(summary = "Delete transaction", description = "Remove a transaction by ID")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
             transactionRepository.deleteById(id);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
-                    ApiResponse.error(e.getMessage())
-            );
+                    ApiResponse.error(e.getMessage()));
         }
     }
 

@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 @Entity
@@ -17,6 +18,10 @@ public class Account {
     private Long id;
 
     private String code;
+
+    @Column(nullable = false)
+    private java.math.BigDecimal balance = java.math.BigDecimal.ZERO;
+
     private String name;
     private String type;
 }

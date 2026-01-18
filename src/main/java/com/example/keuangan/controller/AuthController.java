@@ -1,28 +1,23 @@
 package com.example.keuangan.controller;
 
-import com.example.keuangan.config.CookieUtil;
-import com.example.keuangan.dto.ApiResponse;
-import com.example.keuangan.dto.AuthResponse;
-import com.example.keuangan.dto.LoginRequest;
-import com.example.keuangan.dto.RefreshTokenResponse;
-import com.example.keuangan.dto.RegisterRequest;
+import com.example.keuangan.util.CookieUtil;
+import com.example.keuangan.payload.ApiResponse;
+import com.example.keuangan.payload.MessageResponse;
+import com.example.keuangan.dto.AuthResponseDto;
+import com.example.keuangan.dto.LoginRequestDto;
+import com.example.keuangan.dto.RefreshTokenResponseDto;
+import com.example.keuangan.dto.RegisterRequestDto;
 import com.example.keuangan.service.AuthService;
+import com.example.keuangan.service.FileStorageService;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -38,113 +33,96 @@ import io.swagger.v3.oas.annotations.Operation;
 public class AuthController {
 
     private final AuthService authService;
+    private final FileStorageService fileStorageService;
+
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+    private static final long REFRESH_TOKEN_VALIDITY_MS = 86400000L; // 24 hours
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user account")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody @Valid RegisterRequest request) {
-        try {
-            AuthResponse response = authService.register(request);
-            return ResponseEntity.ok(
-                ApiResponse.success("Registration successful", response)
-            );
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("Registration failed")
-            );
-        }
+    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@RequestBody @Valid RegisterRequestDto request) {
+        AuthResponseDto response = authService.register(request);
+        return ResponseEntity.ok(ApiResponse.success("Registration successful", response));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(
-        @RequestBody 
-        LoginRequest request,
-        HttpServletResponse response) {
-        try {
-            AuthResponse authResponse = authService.login(request, response);
-            return ResponseEntity.ok(
-                ApiResponse.success("Login successful", authResponse)
-            );
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("Login failed: " + e.getMessage())
-            );
+    @Operation(summary = "Login user", description = "Authenticates user and returns access token + refresh token in cookie")
+    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@RequestBody LoginRequestDto request) {
+        AuthResponseDto authResponse = authService.login(request);
+
+        String refreshToken = authResponse.getRefreshToken();
+        if (refreshToken == null) {
+            refreshToken = "";
         }
+
+        ResponseCookie cookie = CookieUtil.createRefreshTokenCookie(
+                refreshToken,
+                REFRESH_TOKEN_VALIDITY_MS);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(ApiResponse.success("Login successful", authResponse));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshTokenResponse> refresh(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        String refreshToken = Arrays.stream(cookies)
-                .filter(c -> c.getName().equals("refresh_token"))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
-
+    @Operation(summary = "Refresh Token", description = "Get new Access Token using Refresh Token from Cookie")
+    public ResponseEntity<RefreshTokenResponseDto> refresh(
+            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken) {
         if (refreshToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return ResponseEntity.ok(authService.refresh(refreshToken, response));
+        RefreshTokenResponseDto tokenResponse = authService.refresh(refreshToken);
+
+        String newRefreshToken = tokenResponse.getNewRefreshToken();
+        if (newRefreshToken == null) {
+            newRefreshToken = "";
+        }
+
+        ResponseCookie cookie = CookieUtil.createRefreshTokenCookie(
+                newRefreshToken,
+                tokenResponse.getRefreshTokenExpiry()
+        );
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(tokenResponse);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
-        HttpServletRequest request,
-        HttpServletResponse response
-    ) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies != null) {
-            Arrays.stream(cookies)
-                    .filter(c -> c.getName().equals("refresh_token"))
-                    .findFirst()
-                    .ifPresent(c -> authService.logout(c.getValue()));
+    @Operation(summary = "Logout user", description = "Blacklist refresh token and clear cookie")
+    public ResponseEntity<MessageResponse> logout(
+            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken) {
+        if (refreshToken != null) {
+            authService.logout(java.util.Objects.requireNonNull(refreshToken));
         }
 
-        CookieUtil.deleteRefreshTokenCookie(response);
-        return ResponseEntity.ok("Logout success");
+        ResponseCookie cookie = CookieUtil.deleteRefreshTokenCookie();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new MessageResponse("Logout success"));
     }
 
-    @PostMapping("/logout-all")
-    public ResponseEntity<?> logoutAll(Authentication authentication) {
-        try {
-            authService.logout(authentication.getName());
-            return ResponseEntity.ok("Logout all devices success");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Logout failed");
-        }
+    @SuppressWarnings("null")
+	@PostMapping("/logout-all")
+    @Operation(summary = "Logout from all devices", description = "Revokes all refresh tokens for the user")
+    public ResponseEntity<MessageResponse> logoutAll(Authentication authentication) {
+        authService.logoutAllDevices(authentication.getName());
+        return ResponseEntity.ok(new MessageResponse("Logout all devices success"));
     }
-
-    private static final String UPLOAD_DIR = "uploads/";
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
-
+    @Operation(summary = "Upload file", description = "Uploads a file to the server")
+    public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File tidak boleh kosong");
+            return ResponseEntity.badRequest().body(new MessageResponse("File tidak boleh kosong"));
         }
 
         try {
-            // Buat folder jika belum ada
-            File dir = new File(UPLOAD_DIR);
-            if (!dir.exists()) dir.mkdirs();
-
-            // Simpan file
-            Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
-            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-
-            return ResponseEntity.ok("Upload berhasil: " + file.getOriginalFilename());
-
+            String fileName = fileStorageService.storeFile(file);
+            return ResponseEntity.ok(new MessageResponse("Upload berhasil: " + fileName));
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Upload gagal");
+            return ResponseEntity.internalServerError().body(new MessageResponse("Upload gagal: " + e.getMessage()));
         }
     }
 }
