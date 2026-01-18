@@ -10,7 +10,7 @@ import com.example.keuangan.entity.User;
 import com.example.keuangan.repository.RefreshTokenRepository;
 import com.example.keuangan.repository.RoleRepository;
 import com.example.keuangan.repository.UserRepository;
-import com.example.keuangan.util.BaseService;
+import com.example.keuangan.util.BaseServiceUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService extends BaseService {
+public class AuthService extends BaseServiceUtil {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;

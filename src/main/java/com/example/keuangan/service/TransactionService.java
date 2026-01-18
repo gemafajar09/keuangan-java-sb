@@ -15,10 +15,10 @@ import com.example.keuangan.entity.TransactionDetail;
 import com.example.keuangan.mapper.TransactionMapper;
 import com.example.keuangan.repository.AccountRepository;
 import com.example.keuangan.repository.TransactionRepository;
-import com.example.keuangan.util.BaseService;
+import com.example.keuangan.util.BaseServiceUtil;
 
 @Service
-public class TransactionService extends BaseService {
+public class TransactionService extends BaseServiceUtil {
 
     private TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;

@@ -11,14 +11,14 @@ import com.example.keuangan.dto.AccountRequestDto;
 import com.example.keuangan.dto.AccountResponseDto;
 import com.example.keuangan.entity.Account;
 import com.example.keuangan.repository.AccountRepository;
-import com.example.keuangan.util.BaseService;
+import com.example.keuangan.util.BaseServiceUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AccountService extends BaseService {
+public class AccountService extends BaseServiceUtil {
     
     private AccountRepository accountRepository;
 

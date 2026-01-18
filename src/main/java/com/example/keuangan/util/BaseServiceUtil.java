@@ -3,7 +3,7 @@ package com.example.keuangan.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class BaseService {
+public abstract class BaseServiceUtil {
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
