@@ -1,4 +1,4 @@
-package com.example.keuangan.dto;
+package com.example.keuangan.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

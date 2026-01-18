@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.keuangan.dto.AccountResponseDto;
+import com.example.keuangan.dto.account.AccountResponseDto;
 import com.example.keuangan.payload.ApiResponse;
-import com.example.keuangan.dto.FinancialTransactionResponseDto;
-import com.example.keuangan.dto.TransactionDetailResponseDto;
-import com.example.keuangan.dto.TransactionRequestDto;
-import com.example.keuangan.dto.TransactionResponseDto;
+import com.example.keuangan.dto.transaction.FinancialTransactionResponseDto;
+import com.example.keuangan.dto.transaction.TransactionDetailResponseDto;
+import com.example.keuangan.dto.transaction.TransactionRequestDto;
+import com.example.keuangan.dto.transaction.TransactionResponseDto;
 import com.example.keuangan.repository.TransactionRepository;
 import com.example.keuangan.service.TransactionService;
 
@@ -95,8 +95,7 @@ public class TransactionController {
                 ApiResponse.success("Transactions retrieved", response));
     }
 
-    @SuppressWarnings("null")
-	@DeleteMapping("/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Delete transaction", description = "Remove a transaction by ID")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {

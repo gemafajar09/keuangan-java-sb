@@ -1,4 +1,4 @@
-package com.example.keuangan.dto;
+package com.example.keuangan.dto.transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

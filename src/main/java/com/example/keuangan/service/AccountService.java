@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.lang.NonNull;
 
-import com.example.keuangan.dto.AccountRequestDto;
-import com.example.keuangan.dto.AccountResponseDto;
+import com.example.keuangan.dto.account.AccountRequestDto;
+import com.example.keuangan.dto.account.AccountResponseDto;
 import com.example.keuangan.entity.Account;
 import com.example.keuangan.repository.AccountRepository;
 import com.example.keuangan.util.BaseServiceUtil;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AccountService extends BaseServiceUtil {
-    
+
     private AccountRepository accountRepository;
 
     @Autowired
@@ -44,8 +44,6 @@ public class AccountService extends BaseServiceUtil {
         account.setCode(accountRequest.getCode());
         account.setName(accountRequest.getName());
         account.setType(accountRequest.getType());
-        // Assuming balance is set or defaults in Account entity or request
-        // account.setBalance(accountRequest.getBalance()); 
         Account savedAccount = accountRepository.save(account);
         return mapToResponse(savedAccount);
     }
@@ -53,12 +51,10 @@ public class AccountService extends BaseServiceUtil {
     public AccountResponseDto updateAccount(@NonNull Long id, AccountRequestDto accountRequest) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        
+
         account.setCode(accountRequest.getCode());
         account.setName(accountRequest.getName());
         account.setType(accountRequest.getType());
-        // Assuming balance is updated or defaults
-        // account.setBalance(accountRequest.getBalance());
         Account updatedAccount = accountRepository.save(account);
         return mapToResponse(updatedAccount);
     }
@@ -66,18 +62,17 @@ public class AccountService extends BaseServiceUtil {
     private AccountResponseDto mapToResponse(Account account) {
         return new AccountResponseDto(
                 account.getId(),
-                account.getCode(), // Assuming code is part of AccountResponseDto
+                account.getCode(),
                 account.getName(),
                 account.getType(),
-                account.getBalance() // Assuming balance is part of AccountResponseDto
-        );
+                account.getBalance());
     }
 
     @Transactional
     public void hapusAccount(@NonNull Long id) {
         try {
             accountRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
             accountRepository.deleteById(id);
         } catch (IllegalArgumentException e) {
             throw e;

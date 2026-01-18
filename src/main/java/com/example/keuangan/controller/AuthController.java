@@ -3,10 +3,11 @@ package com.example.keuangan.controller;
 import com.example.keuangan.util.CookieUtil;
 import com.example.keuangan.payload.ApiResponse;
 import com.example.keuangan.payload.MessageResponse;
-import com.example.keuangan.dto.AuthResponseDto;
-import com.example.keuangan.dto.LoginRequestDto;
-import com.example.keuangan.dto.RefreshTokenResponseDto;
-import com.example.keuangan.dto.RegisterRequestDto;
+import com.example.keuangan.dto.auth.AuthResponseDto;
+import com.example.keuangan.dto.auth.LoginRequestDto;
+import com.example.keuangan.dto.auth.RefreshTokenResponseDto;
+import com.example.keuangan.dto.auth.RegisterRequestDto;
+import com.example.keuangan.dto.user.UserResponseDto;
 import com.example.keuangan.service.AuthService;
 import com.example.keuangan.service.FileStorageService;
 
@@ -36,7 +37,7 @@ public class AuthController {
     private final FileStorageService fileStorageService;
 
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    private static final long REFRESH_TOKEN_VALIDITY_MS = 86400000L; // 24 hours
+    private static final long REFRESH_TOKEN_VALIDITY_MS = 86400000L; // 24 jam
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user account")
@@ -81,8 +82,7 @@ public class AuthController {
 
         ResponseCookie cookie = CookieUtil.createRefreshTokenCookie(
                 newRefreshToken,
-                tokenResponse.getRefreshTokenExpiry()
-        );
+                tokenResponse.getRefreshTokenExpiry());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -103,8 +103,7 @@ public class AuthController {
                 .body(new MessageResponse("Logout success"));
     }
 
-    @SuppressWarnings("null")
-	@PostMapping("/logout-all")
+    @PostMapping("/logout-all")
     @Operation(summary = "Logout from all devices", description = "Revokes all refresh tokens for the user")
     public ResponseEntity<MessageResponse> logoutAll(Authentication authentication) {
         authService.logoutAllDevices(authentication.getName());
@@ -124,5 +123,12 @@ public class AuthController {
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body(new MessageResponse("Upload gagal: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get Current User Profile", description = "Get details of the currently authenticated user")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getCurrentUser(Authentication authentication) {
+        UserResponseDto userProfile = authService.getUserProfile(authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("User profile retrieved successfully", userProfile));
     }
 }

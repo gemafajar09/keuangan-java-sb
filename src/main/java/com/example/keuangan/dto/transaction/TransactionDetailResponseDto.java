@@ -1,8 +1,9 @@
-package com.example.keuangan.dto;
+package com.example.keuangan.dto.transaction;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.example.keuangan.dto.account.AccountResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

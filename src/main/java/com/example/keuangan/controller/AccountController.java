@@ -6,8 +6,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.lang.NonNull;
 
-import com.example.keuangan.dto.AccountRequestDto;
-import com.example.keuangan.dto.AccountResponseDto;
+import com.example.keuangan.dto.account.AccountRequestDto;
+import com.example.keuangan.dto.account.AccountResponseDto;
 import com.example.keuangan.payload.ApiResponse;
 import com.example.keuangan.service.AccountService;
 
@@ -21,7 +21,7 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 @Tag(name = "Account Controller", description = "Manage financial accounts")
 public class AccountController {
-    
+
     private final AccountService accountService;
 
     @Autowired
@@ -52,9 +52,10 @@ public class AccountController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update account", description = "Update an existing account")
-    public ApiResponse<AccountResponseDto> updateAccount(@PathVariable @NonNull Long id, @RequestBody AccountRequestDto request) {
-         AccountResponseDto updatedAccount = accountService.updateAccount(id, request);
-         return new ApiResponse<>(true, "Account updated successfully", updatedAccount);
+    public ApiResponse<AccountResponseDto> updateAccount(@PathVariable @NonNull Long id,
+            @RequestBody AccountRequestDto request) {
+        AccountResponseDto updatedAccount = accountService.updateAccount(id, request);
+        return new ApiResponse<>(true, "Account updated successfully", updatedAccount);
     }
 
     @DeleteMapping("/{id}")

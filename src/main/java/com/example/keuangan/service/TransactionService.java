@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.keuangan.dto.TransactionDetailRequestDto;
-import com.example.keuangan.dto.TransactionRequestDto;
-import com.example.keuangan.dto.TransactionResponseDto;
+import com.example.keuangan.dto.transaction.TransactionDetailRequestDto;
+import com.example.keuangan.dto.transaction.TransactionRequestDto;
+import com.example.keuangan.dto.transaction.TransactionResponseDto;
 import com.example.keuangan.entity.Account;
 import com.example.keuangan.entity.FinancialTransaction;
 import com.example.keuangan.entity.TransactionDetail;
@@ -23,13 +23,12 @@ public class TransactionService extends BaseServiceUtil {
     private TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final TransactionMapper transactionMapper;
-    
+
     @Autowired
     public TransactionService(
             TransactionRepository transactionRepository,
             AccountRepository accountRepository,
-            TransactionMapper transactionMapper
-    ) {
+            TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.transactionMapper = transactionMapper;
@@ -56,8 +55,7 @@ public class TransactionService extends BaseServiceUtil {
         return transactionMapper.toResponse(saved);
     }
 
-    @SuppressWarnings("null")
-	private TransactionDetail mapDetail(TransactionDetailRequestDto dto) {
+    private TransactionDetail mapDetail(TransactionDetailRequestDto dto) {
         Account account = accountRepository.findById(dto.getAccountId())
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
