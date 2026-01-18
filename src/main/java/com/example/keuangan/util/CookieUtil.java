@@ -22,4 +22,23 @@ public class CookieUtil {
                 .sameSite("Strict")
                 .build();
     }
+
+    public static ResponseCookie createAccessTokenCookie(@org.springframework.lang.NonNull String token, long maxAge) {
+        return ResponseCookie.from("access_token", token)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(maxAge / 1000)
+                .sameSite("Strict")
+                .build();
+    }
+
+    public static ResponseCookie deleteAccessTokenCookie() {
+        return ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+    }
 }

@@ -48,21 +48,29 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticates user and returns access token + refresh token in cookie")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequestDto request) {
         AuthResponseDto authResponse = authService.login(request);
 
+        String accessToken = authResponse.getAccessToken();
         String refreshToken = authResponse.getRefreshToken();
         if (refreshToken == null) {
             refreshToken = "";
         }
 
-        ResponseCookie cookie = CookieUtil.createRefreshTokenCookie(
+        // Create access token cookie
+        ResponseCookie accessCookie = CookieUtil.createAccessTokenCookie(
+                accessToken,
+                900000L); // 15 minutes
+
+        // Create refresh token cookie
+        ResponseCookie refreshCookie = CookieUtil.createRefreshTokenCookie(
                 refreshToken,
                 REFRESH_TOKEN_VALIDITY_MS);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(ApiResponse.success("Login successful", authResponse));
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(ApiResponse.success("Login successful", "Logged in successfully"));
     }
 
     @PostMapping("/refresh")
@@ -90,16 +98,20 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Logout user", description = "Blacklist refresh token and clear cookie")
+    @Operation(summary = "Logout user", description = "Blacklist refresh token and clear cookies")
     public ResponseEntity<MessageResponse> logout(
             @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken) {
         if (refreshToken != null) {
             authService.logout(java.util.Objects.requireNonNull(refreshToken));
         }
 
-        ResponseCookie cookie = CookieUtil.deleteRefreshTokenCookie();
+        // Clear both access and refresh token cookies
+        ResponseCookie accessCookie = CookieUtil.deleteAccessTokenCookie();
+        ResponseCookie refreshCookie = CookieUtil.deleteRefreshTokenCookie();
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new MessageResponse("Logout success"));
     }
 

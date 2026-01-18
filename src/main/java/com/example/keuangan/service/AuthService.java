@@ -40,6 +40,7 @@ public class AuthService extends BaseServiceUtil {
                 User user = new User();
                 user.setEmail(request.getEmail());
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
+                user.setIsOnline(false); // New users start offline
 
                 Role role;
                 if (request.getRoleId() != null) {
@@ -70,6 +71,15 @@ public class AuthService extends BaseServiceUtil {
                 if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                         throw new BadCredentialsException("Invalid credentials");
                 }
+
+                // Enforce single session: revoke all existing refresh tokens (logout other
+                // devices)
+                refreshTokenService.revokeAllByUser(user.getId());
+
+                // Set user online status
+                user.setIsOnline(true);
+                user.setLastLoginAt(java.time.Instant.now());
+                userRepository.save(user);
 
                 String token = jwtService.generateToken(
                                 user.getEmail(),
@@ -104,6 +114,13 @@ public class AuthService extends BaseServiceUtil {
 
         @Transactional
         public void logout(@NonNull String refreshToken) {
+                // Find user by refresh token and set offline
+                refreshTokenRepository.findByToken(refreshToken).ifPresent(token -> {
+                        User user = token.getUser();
+                        user.setIsOnline(false);
+                        userRepository.save(user);
+                });
+
                 refreshTokenRepository.deleteByToken(refreshToken);
         }
 
