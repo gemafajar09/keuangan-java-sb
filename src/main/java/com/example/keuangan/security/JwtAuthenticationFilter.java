@@ -24,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final com.example.keuangan.repository.UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -65,6 +66,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtService.isTokenValid(jwt)) {
 
                 String role = jwtService.extractRole(jwt);
+
+                // Additional check: verify user is still online (not logged out)
+                com.example.keuangan.entity.User user = userRepository.findByEmail(email).orElse(null);
+
+                if (user != null && Boolean.FALSE.equals(user.getIsOnline())) {
+                    // User has logged out, reject the request
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,

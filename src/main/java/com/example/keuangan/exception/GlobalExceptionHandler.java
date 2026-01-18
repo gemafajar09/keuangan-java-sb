@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ApiResponse.error("Invalid email or password"), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(UserAlreadyActiveException.class)
+    public ResponseEntity<ApiResponse<String>> handleUserAlreadyActiveException(UserAlreadyActiveException ex) {
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {
         return new ResponseEntity<>(ApiResponse.error("An unexpected error occurred: " + ex.getMessage()),

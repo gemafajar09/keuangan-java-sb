@@ -72,6 +72,19 @@ public class AuthService extends BaseServiceUtil {
                         throw new BadCredentialsException("Invalid credentials");
                 }
 
+                // Check if user is already logged in from another device
+                // Handle null case: if isOnline is null, treat as false (offline)
+                Boolean isOnline = user.getIsOnline();
+                if (isOnline == null) {
+                        // Fix null value by setting to false
+                        user.setIsOnline(false);
+                        isOnline = false;
+                }
+
+                if (Boolean.TRUE.equals(isOnline)) {
+                        throw new com.example.keuangan.exception.UserAlreadyActiveException();
+                }
+
                 // Enforce single session: revoke all existing refresh tokens (logout other
                 // devices)
                 refreshTokenService.revokeAllByUser(user.getId());
