@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,15 @@ public class AuthService extends BaseServiceUtil {
                 user.setEmail(request.getEmail());
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-                Long roleId = request.getRoleId() != null ? request.getRoleId() : 1L;
-                Role role = roleRepository.findById(roleId)
-                                .orElseThrow(() -> new RuntimeException("Role not found"));
+                Role role;
+                if (request.getRoleId() != null) {
+                        role = roleRepository.findById(request.getRoleId())
+                                        .orElseThrow(() -> new RuntimeException("Role not found"));
+                } else {
+                        role = roleRepository.findByName("USER")
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Default role 'USER' not found. Database might need seeding."));
+                }
                 user.setRole(role);
 
                 userRepository.save(user);
@@ -58,10 +65,10 @@ public class AuthService extends BaseServiceUtil {
         public AuthResponseDto login(LoginRequestDto request) {
 
                 User user = userRepository.findByEmail(request.getEmail())
-                                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
                 if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                        throw new RuntimeException("Invalid credentials");
+                        throw new BadCredentialsException("Invalid credentials");
                 }
 
                 String token = jwtService.generateToken(
